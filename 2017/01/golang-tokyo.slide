@@ -166,9 +166,9 @@ All gophers should read [[https://blog.cloudflare.com/the-complete-guide-to-gola
 - Mercari is hosted in multi regions. (JP, US, UK)
 - chocon stands in each region.
 - There are some common APIs on GCP are available from all regions.
-- We can keep low network latency in calling APIs on GCP.
+- chocon keeps connections to Google Cloud Load Balancer(GCLB).
 
-chocon keeps connections to Google Cloud Load Balancer(GCLB).
+We can achive low network latency in calling APIs on GCP.
 
 .image img/gclb.png 260 _
 
