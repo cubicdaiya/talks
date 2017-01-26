@@ -1,0 +1,290 @@
+Accelerating real applications in Go
+golang.tokyo #3 ~Performance~
+26 Jan 2017
+
+Tatsuhiko Kubo
+@cubicdaiya
+
+* Profile
+
+.image img/cubicdaiya.jpg 200 _
+
+- [[https://github.com/cubicdaiya][*@cubicdaiya*]] (GitHub)
+- Principal Engineer, SRE @ Mercari, Inc.
+- Favorites: nginx, Go, C, Lua
+
+.image img/mercari-sre.png 200 _
+
+* Softwares in Go
+
+Server middlewares and command-line tools.
+
+- [[https://github.com/mercari/gaurun][Gaurun]] - Push notification server
+- [[https://github.com/mercari/widebullet][widebullet]] - API gateway by JSON-RPC
+- [[https://github.com/cubicdaiya/slackboard][slackboard]] - Proxy server and client for Slack
+- [[https://github.com/cubicdaiya/nginx-build][nginx-build]] - Seamless nginx builder
+- [[https://github.com/cubicdaiya/cachectl][cachectl]] - Page cache controller
+- etc...
+
+* Agenda
+
+Introducing real cases and technique for accelerating applications in Go.
+
+- [[https://github.com/kazeburo/chocon][chocon]] - Persistent connector between multi datacenters
+- [[https://github.com/mercari/gaurun][gaurun]] - Push notification provider
+
+* Persistent connector between multi datacenters (chocon)
+
+.image img/chocon.png 500 _
+
+* Push notification provider (Gaurun)
+
+.image img/push.png 500 _
+
+* Real cases of accelerating applications
+
+- [[https://github.com/kazeburo/chocon][chocon]] - Persistent connector between multi datacenters
+- [[https://github.com/mercari/gaurun][gaurun]] - Push notification provider
+
+These are kinds of proxy server.
+
+* Proxy server as application accelerator
+
+A proxy sever can provide features for acclerating application. For example,
+
+- Content caching
+- TLS termination
+- Load balancing
+- Persistent connectivity
+- Request and response manipulation
+
+Usually I'm building application accelerators by nginx/OpenResty and Go.
+
+* Why is application accelerator required?
+
+Real application is constructed under various components.
+
+- Each component has own special characteristics.
+- Proxy server is required for connecting each other seamless.
+- Isolation between business logic and technical details
+
+Achive Microservices Architecture
+
+- Low network latency is required
+
+* Implementing proxy server in Go
+
+* Implementing proxy server in Go
+
+Go provides [[https://golang.org/pkg/net/http/][net/http]] package. We can gain enough performance by only this for introducing proxy server in Go.
+
+.code src/hqs/server.go
+.code src/hqs/ab.txt
+
+* Speciality of proxy sever
+
+- Proxy server is a server and client
+
+So it is required to optimize not only as server but as client.
+
+- HTTP server and client optimization
+
+There are more necessary considerations for client than server in [[https://golang.org/pkg/net/http/][net/http]] package.
+
+* HTTP request by http.DefaultClient
+
+In [[https://golang.org/src/net/http/client.go][net/http/client.go]],
+
+.code src/default_http_client.go
+
+* http.DefaultClient uses http.DefaultTransport
+
+In [[https://golang.org/src/net/http/transport.go][net/http/transport.go]],
+
+.code src/default_http_transport.go
+
+* Customize http.Client and http.Transport
+
+.code src/custom_http_client.go
+
+* Important members in http.Transport for proxy server
+
+In [[https://golang.org/src/net/http/transport.go][net/http/transport.go]],
+
+.code src/important_members_in_transport.go
+
+- Default value
+
+・MaxIdleConns: 100
+・MaxIdleConnsPerHost: 2
+・IdleConnTimeout: 90
+
+* By the way,
+
+- http.Client
+
+In [[https://golang.org/src/net/http/client.go][net/http/client.go]],
+
+.code src/reuse_client_comment.go
+
+In [[https://golang.org/src/net/http/transport.go][net/http/transport.go]],
+
+- http.Transport
+
+.code src/reuse_transport_comment.go
+
+So these should be reused instead of generating each time.
+
+* Achiving low network latency
+
+* Achiving low network latency
+
+As I mentioned (refered) earlier, http.Transport has members for controling connections to server. For example,
+
+・MaxIdleConns
+・MaxIdleConnsPerHost
+・IdleConnTimeout
+
+These are important for achiving persistent connectivity to server. And there are various timeout options.
+
+- net.Dialer.Timeout
+- http.Client.Timeout
+- http.Transport.TLSHandShakeTimeout
+- http.Transport.ResponseHeaderTimeout
+- etc...
+
+All gophers should read [[https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/][this article]] in Cloudflare blog.
+
+* Persistent connector between multi datacenters (chocon)
+
+.image img/chocon.png 500 _
+
+* Persistent connector between multi datacenters (chocon)
+
+[[https://github.com/kazeburo/chocon][chocon]] is persistent connector between multi datacenters.
+
+- Mercari is hosted in multi regions. (JP, US, UK)
+- chocon stands in each region.
+- There are some common APIs on GCP are available from all regions.
+- We can keep low network latency in calling APIs on GCP.
+
+chocon keeps connections to Google Cloud Load Balancer(GCLB).
+
+.image img/gclb.png 260 _
+
+* Google Cloud Load Balancer
+[[https://cloud.google.com/load-balancing/]]
+
+- Single anycast IP
+- Cross-region load balancing
+- Multi-region failover
+
+* chocon provides features below
+
+Forwarding HTTP request to upstream based on Host header.
+
+- HTTP
+
+ Host: example.com.ccnproxy
+
+- HTTPS (HTTP/2)
+
+ Host: example.com.ccnproxy-secure
+
+Providing persistent connectivity to upstream.
+
+* Achiving high concurrency
+
+* Achiving high concurrency
+
+- Go provides powerful concurrency support by goroutine and channel
+
+So Go can handle many goroutines simultaneously.
+
+- Real case
+
+[[https://github.com/mercari/gaurun][Gaurun]] - Push notification provider
+
+- Handling goroutines over thousands simultaneously at peak.
+
+* Push notification provider (Gaurun)
+
+.image img/push.png 500 _
+
+* Push notification provider (Gaurun)
+
+[[https://github.com/mercari/gaurun][Gaurun]] is push notification server for smartphone application.
+
+- Proxying push requests to GCM and APNs by HTTP/2
+- Achiving persistent connectivity to GCM and APNs
+
+Push notification server has the characteristics and requirements blow.
+
+- GCM and APNs is far distance in network (High latency)
+- It is reuired to send messages quickly (For example, push to all users in about 30 minutes)
+
+So high concurrency is required for a large scale push notification system.
+
+* Processing push request flow in Gaurun
+
+.image img/gaurun.png 500 _
+
+* Channel based queue and workers
+
+channel is available as in-memory queue.
+
+.code src/queue.go
+
+Start workers and initialize queue.
+
+.code src/worker.go
+
+- Caution
+
+Channel based queue is limited size and possible to trigger blocking. We can get size and usage. Let's monitoring!
+
+.code src/usage.go
+
+* Introduce pusher pool
+
+Previously,
+
+- There was not because of APNs Binary Provider API limitation.
+- Simultaneous number of push was number of worker.
+- This number was same as limit-number of connection for GCM and APNs
+
+Now
+
+- Simultaneous number of push is number of worker x pushers in pool
+- Number of connection is configurable regardless of number of worker
+
+As as result, the performance of gaurun has been improved more than several times.
+Because [[https://github.com/mercari/gaurun][Gaurun]] can handle goroutines over thousands simultaneously.
+
+* Monitoring Gaurun status
+
+- GET /stat/go
+
+.code src/gorountine_numbers_for_gaurun.txt
+
+- GET /stat/app
+
+.code src/gaurun_stats.txt
+
+* Conclusion
+
+- Application Accelarator as Go
+
+A proxy sever can provide features for acclerating application.
+
+- Implementing a proxy server in Go
+
+We can implement proxy server equiped enough performance in Go.
+But there are more necessary considerations for client than server in [[https://golang.org/pkg/net/http/][net/http]] package.
+
+- Achive low network latency and high concurrency
+
+We can achive low network latency and high concurrency in Go. Because, 
+
+- Go provides useful [[https://golang.org/pkg/net/http/][net/http]] package. We can gain enough performance by only this for introducing proxy server.
+- Go can handle too many goroutines simultaneously.

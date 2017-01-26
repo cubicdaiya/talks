@@ -1,0 +1,15 @@
+$ curl -s http://127.0.0.1:1056/stat/app
+{
+    "queue_max": 12000000,
+    "queue_usage": 515497,
+    "pusher_max": 1152,
+    "pusher_count": 640,
+        "ios": {
+        "push_success": 2465897,
+        "push_error": 5704
+    },
+    "android": {
+        "push_success": 1416295,
+        "push_error": 4118
+    }
+}

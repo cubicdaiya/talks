@@ -1,0 +1,2 @@
+$ ab -k -c 100 -n 100000 "http://127.0.0.1:8080/" 2>&1 | egrep 'Requests per second:'
+Requests per second:    56127.40 [#/sec] (mean)
