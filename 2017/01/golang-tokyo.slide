@@ -68,7 +68,7 @@ Real application is constructed under various components.
 - Proxy server is required for connecting each other seamless.
 - Isolation between business logic and technical details
 
-Achive Microservices Architecture
+Achieve Microservices Architecture
 
 - Low network latency is required
 
@@ -135,9 +135,9 @@ In [[https://golang.org/src/net/http/transport.go][net/http/transport.go]],
 
 So these should be reused instead of generating each time.
 
-* Achiving low network latency
+* Achieving low network latency
 
-* Achiving low network latency
+* Achieving low network latency
 
 As I mentioned (refered) earlier, http.Transport has members for controling connections to server. For example,
 
@@ -145,7 +145,7 @@ As I mentioned (refered) earlier, http.Transport has members for controling conn
 ・MaxIdleConnsPerHost
 ・IdleConnTimeout
 
-These are important for achiving persistent connectivity to server. And there are various timeout options.
+These are important for achieving persistent connectivity to server. And there are various timeout options.
 
 - net.Dialer.Timeout
 - http.Client.Timeout
@@ -168,7 +168,7 @@ All gophers should read [[https://blog.cloudflare.com/the-complete-guide-to-gola
 - There are some common APIs on GCP are available from all regions.
 - chocon keeps connections to Google Cloud Load Balancer(GCLB).
 
-We can achive low network latency in calling APIs on GCP.
+We can achieve low network latency in calling APIs on GCP.
 
 .image img/gclb.png 260 _
 
@@ -193,9 +193,9 @@ Forwarding HTTP request to upstream based on Host header.
 
 Providing persistent connectivity to upstream.
 
-* Achiving high concurrency
+* Achieving high concurrency
 
-* Achiving high concurrency
+* Achieving high concurrency
 
 - Go provides powerful concurrency support by goroutine and channel
 
@@ -216,7 +216,7 @@ So Go can handle many goroutines simultaneously.
 [[https://github.com/mercari/gaurun][Gaurun]] is push notification server for smartphone application.
 
 - Proxying push requests to GCM and APNs by HTTP/2
-- Achiving persistent connectivity to GCM and APNs
+- Achieving persistent connectivity to GCM and APNs
 
 Push notification server has the characteristics and requirements blow.
 
@@ -282,9 +282,9 @@ A proxy sever can provide features for acclerating application.
 We can implement proxy server equiped enough performance in Go.
 But there are more necessary considerations for client than server in [[https://golang.org/pkg/net/http/][net/http]] package.
 
-- Achive low network latency and high concurrency
+- Achieve low network latency and high concurrency
 
-We can achive low network latency and high concurrency in Go. Because, 
+We can achieve low network latency and high concurrency in Go. Because, 
 
 - Go provides useful [[https://golang.org/pkg/net/http/][net/http]] package. We can gain enough performance by only this for introducing proxy server.
 - Go can handle too many goroutines simultaneously.
